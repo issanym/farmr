@@ -1,0 +1,256 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="farmr">
+
+    <xacro:property name="PI" value="3.1415"/>
+
+    <xacro:property name="base_width" value="0.50"/>
+    <xacro:property name="base_height" value="0.20"/>
+    <xacro:property name="base_depth" value="0.750"/>
+
+
+    <xacro:property name="wheel_rad" value="0.1015"/>
+    <xacro:property name="wheel_len" value="0.020"/>
+    <xacro:property name="wheel_posY" value="${base_width/2 + wheel_len/2}"/>
+    <xacro:property name="wheel_offset" value="${wheel_rad}"/>
+    <xacro:property name="wheel_posZ" value="-${(((base_height/2)+wheel_offset)-(wheel_rad*2))+(wheel_rad)}"/>
+    <xacro:property name="wheel_posX" value="-${(base_depth/2)-(wheel_rad + 0.05)}"/>
+
+    <xacro:property name="caster_rad" value="${wheel_rad/2.0}"/>
+    <xacro:property name="caster_posZ" value="${caster_rad + (base_height/2.0)}"/>
+
+    <xacro:property name="cam_width" value="0.040"/>
+    <xacro:property name="cam_height" value="0.015"/>
+    <xacro:property name="cam_depth" value="0.030"/>
+    <xacro:property name="cam_posZ" value="${(cam_height/2.0)+(base_height/2.0)}"/>
+
+    <!-- ===================== MASSES (tune these to your real robot) ===================== -->
+    <xacro:property name="mass_base" value="15.0"/>
+    <xacro:property name="mass_wheel" value="1.2"/>
+    <xacro:property name="mass_caster" value="0.15"/>
+    <xacro:property name="mass_cam" value="0.05"/>
+
+    <!-- ===================== INERTIA MACROS ===================== -->
+    <!-- Solid box: dims along x, y, z -->
+    <xacro:macro name="box_inertia" params="mass x y z">
+        <inertia
+            ixx="${(1.0/12.0)*mass*(y*y+z*z)}" ixy="0" ixz="0"
+            iyy="${(1.0/12.0)*mass*(x*x+z*z)}" iyz="0"
+            izz="${(1.0/12.0)*mass*(x*x+y*y)}"/>
+    </xacro:macro>
+
+    <!-- Solid cylinder: symmetry axis along local z (matches <cylinder> geometry default) -->
+    <xacro:macro name="cylinder_inertia" params="mass r h">
+        <inertia
+            ixx="${(1.0/12.0)*mass*(3.0*r*r+h*h)}" ixy="0" ixz="0"
+            iyy="${(1.0/12.0)*mass*(3.0*r*r+h*h)}" iyz="0"
+            izz="${0.5*mass*r*r}"/>
+    </xacro:macro>
+
+    <!-- Solid sphere -->
+    <xacro:macro name="sphere_inertia" params="mass r">
+        <inertia
+            ixx="${0.4*mass*r*r}" ixy="0" ixz="0"
+            iyy="${0.4*mass*r*r}" iyz="0"
+            izz="${0.4*mass*r*r}"/>
+    </xacro:macro>
+
+    <material name="red">
+        <color rgba="1 0 0 1"/>
+    </material>
+    <material name="green">
+        <color rgba="0 1 0 1"/>
+    </material>
+    <material name="teal">
+        <color rgba="0 0.5 .5 1"/>
+    </material>
+    <material name="white">
+        <color rgba="1 1 1 1"/>
+    </material>
+
+<!--================================ LINKS ==============================================-->
+    <!-- <link name="world_link"/> -->
+
+    <link name="base_link">
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <box size="${base_depth} ${base_width} ${base_height}"/>
+            </geometry>
+            <material name="red"/>
+        </visual>
+        <collision>
+            <geometry>
+               <box size="${base_depth} ${base_width} ${base_height}"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${mass_base}"/>
+            <xacro:box_inertia mass="${mass_base}" x="${base_depth}" y="${base_width}" z="${base_height}"/>
+        </inertial>
+    </link>
+
+    <link name="left_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="${wheel_rad}" length="${wheel_len}"/>
+            </geometry>
+            <material name="teal"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${wheel_rad}" length="${wheel_len}"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${mass_wheel}"/>
+            <xacro:cylinder_inertia mass="${mass_wheel}" r="${wheel_rad}" h="${wheel_len}"/>
+        </inertial>
+    </link>
+
+    <link name="right_wheel_link">
+        <visual>
+            <geometry>
+                <cylinder radius="${wheel_rad}" length="${wheel_len}"/>
+            </geometry>
+            <material name="teal"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${wheel_rad}" length="${wheel_len}"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${mass_wheel}"/>
+            <xacro:cylinder_inertia mass="${mass_wheel}" r="${wheel_rad}" h="${wheel_len}"/>
+        </inertial>
+    </link>
+
+    <link name="left_caster_link">
+        <visual>
+            <geometry>
+                <sphere radius="${caster_rad}"/>
+            </geometry>
+            <material name="teal"/>
+        </visual>
+        <collision>
+            <geometry>
+                <sphere radius="${caster_rad}"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${mass_caster}"/>
+            <xacro:sphere_inertia mass="${mass_caster}" r="${caster_rad}"/>
+        </inertial>
+    </link>
+
+    <link name="right_caster_link">
+        <visual>
+            <geometry>
+                <sphere radius="${caster_rad}"/>
+            </geometry>
+            <material name="teal"/>
+        </visual>
+        <collision>
+            <geometry>
+                <sphere radius="${caster_rad}"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${mass_caster}"/>
+            <xacro:sphere_inertia mass="${mass_caster}" r="${caster_rad}"/>
+        </inertial>
+    </link>
+
+    <link name="nav_cam_link">
+        <visual>
+            <geometry>
+                <box size="${cam_height} ${cam_width} ${cam_depth}"/>
+
+            </geometry>
+            <material name="green"/>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="${cam_height} ${cam_width} ${cam_depth}"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${mass_cam}"/>
+            <xacro:box_inertia mass="${mass_cam}" x="${cam_height}" y="${cam_width}" z="${cam_depth}"/>
+        </inertial>
+    </link>
+
+    <link name="crop_cam_link">
+        <visual>
+            <geometry>
+                <box size="${cam_depth} ${cam_width} ${cam_height}"/>
+            </geometry>
+            <material name="green"/>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="${cam_depth} ${cam_width} ${cam_height}"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${mass_cam}"/>
+            <xacro:box_inertia mass="${mass_cam}" x="${cam_depth}" y="${cam_width}" z="${cam_height}"/>
+        </inertial>
+    </link>
+
+
+<!--========================================== JOINT ============================================== -->
+
+    <!-- <joint name="world_base_joint" type="fixed">
+        <parent link="world_link"/>
+        <child link="base_link"/>
+        <origin xyz="0 0 ${(base_height/2)+wheel_rad}" rpy="0 0 0"/>        
+    </joint> -->
+    <joint name="base_left_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="left_wheel_link"/>
+        <origin xyz="${wheel_posX} ${wheel_posY} ${wheel_posZ}" rpy="${PI/2.0} 0 0"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
+    <joint name="base_right_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="right_wheel_link"/>
+        <origin xyz="${wheel_posX} -${wheel_posY} ${wheel_posZ}" rpy="${PI/2.0} 0 0"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
+    <joint name="base_caster_left_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="left_caster_link"/>
+        <origin xyz="${base_depth/2.0} -${base_width/2} -${caster_posZ}" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="base_caster_right_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="right_caster_link"/>
+        <origin xyz="${base_depth/2} ${base_width/2} -${caster_posZ}" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="base_nav_cam_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="nav_cam_link"/>
+        <origin xyz="${(base_depth/2.0)+(cam_height/2)} 0 ${cam_posZ-0.025}" rpy="0 0 0"/>
+    </joint>
+
+    <joint name="base_crop_cam_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="crop_cam_link"/>
+        <origin xyz="0 0 -${cam_posZ}" rpy="0 0 0"/>
+    </joint>
+
+
+</robot>
