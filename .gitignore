@@ -1,6 +1,11 @@
 # pixi environments
 .pixi/*
 !.pixi/config.toml
-build/*
-install/*
-log/*
+farmr-bot/build/*
+farmr-bot/install/*
+farmr-bot/log/*
+.agents/*
+.gemini/*
+log/
+install/
+build/
